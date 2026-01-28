@@ -1,0 +1,38 @@
+# Ryki Trading Bot Dependencies
+
+# Django Core
+Django>=5.0,<6.0
+djangorestframework>=3.14
+django-cors-headers>=4.3
+
+# Async & WebSockets
+channels>=4.0
+channels-redis>=4.1
+daphne>=4.0
+
+# Task Queue
+celery>=5.3
+redis>=5.0
+
+# Binance Integration
+python-binance>=1.0.19
+
+# Database
+psycopg2-binary>=2.9
+dj-database-url>=2.0
+
+# Configuration
+python-dotenv>=1.0
+
+# Data Processing
+numpy>=1.24
+pandas>=2.0
+
+# HTTP Requests (for economic calendar)
+httpx>=0.25
+aiohttp>=3.9
+
+# Testing
+pytest>=7.4
+pytest-django>=4.5
+pytest-asyncio>=0.21

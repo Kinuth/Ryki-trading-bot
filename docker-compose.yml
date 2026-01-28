@@ -1,0 +1,89 @@
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ryki_trading
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  # Redis for caching and Celery
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # Django Web Application
+  web:
+    build: .
+    command: daphne -b 0.0.0.0 -p 8000 ryki_trading.asgi:application
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/ryki_trading
+      - REDIS_URL=redis://redis:6379/0
+      - DEBUG=True
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+
+  # Celery Worker
+  celery_worker:
+    build: .
+    command: celery -A ryki_trading worker -l info
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/ryki_trading
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+
+  # Celery Beat Scheduler
+  celery_beat:
+    build: .
+    command: celery -A ryki_trading beat -l info
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/ryki_trading
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+      - celery_worker
+    env_file:
+      - .env
+
+  # Binance WebSocket Streamer
+  websocket_streamer:
+    build: .
+    command: python manage.py run_websocket
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/ryki_trading
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+
+volumes:
+  postgres_data:
+  redis_data:
